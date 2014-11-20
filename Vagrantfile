@@ -50,7 +50,7 @@ Vagrant.configure("2") do |config|
   config.vm.box_version = "~> 7.0"
   config.ssh.username = "root"
   
-  config.hostmanager.enabled = false # Disable for AWS
+  config.hostmanager.enabled = true # Disable for AWS
   config.hostmanager.include_offline = true
   
   # Create all the consul servers first
@@ -105,23 +105,26 @@ Vagrant.configure("2") do |config|
           
           # PXC setup
           "percona_server_version"  => mysql_version,
-          'innodb_buffer_pool_size' => '25G',
-          'innodb_log_file_size' => '2G',
+          'innodb_buffer_pool_size' => '1G',
           'innodb_flush_log_at_trx_commit' => '0',
           'pxc_bootstrap_node' => (name == 'node1' ? true : false ),
           'wsrep_cluster_address' => 'gcomm://' + pxc_nodes.keys.join( ',' ),
-          'wsrep_provider_options' => 'gcache.size=2G; gcs.fc_limit=1024',
+          # 'wsrep_provider_options' => 'gcache.size=2G; gcs.fc_limit=1024',
           
           # Sysbench setup
           'sysbench_load' => (name == 'node1' ? true : false ),
-          'tables' => 32,
+          'tables' => 1,
           'rows' => 1000000,
-          'threads' => 16
+          'threads' => 1,
+          
+          # PCT setup
+          'percona_agent_enabled' => true,
+          'percona_agent_api_key' => '5b9ea296ca8a848f94ac31527970c783'
         }
       }
 
       # Providers
-      provider_virtualbox( name, node_config, 256 ) { |vb, override|
+      provider_virtualbox( name, node_config, 2048 ) { |vb, override|
         provision_puppet( override, "pxc_server.pp" ) {|puppet|
           puppet.facter = {
             # Consul setup
