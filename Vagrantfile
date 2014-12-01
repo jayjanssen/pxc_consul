@@ -66,7 +66,7 @@ Vagrant.configure("2") do |config|
       # Providers
       provider_vmware( name, node_config )
       provider_virtualbox( name, node_config ) { |vb, override|
-        vb.vm.network :private_network, type: "dhcp"
+        override.vm.network :private_network, type: "dhcp"
         
         # Override the bind_addr on vbox to use the backend network
         provision_puppet( override, "consul_server.pp" ) {|puppet|
@@ -100,7 +100,7 @@ Vagrant.configure("2") do |config|
       provider_vmware( name, node_config )
       provider_virtualbox( name, node_config ) { |vb, override|
         # Override the bind_addr on vbox to use the backend network
-        vb.vm.network :private_network, type: "dhcp"
+        override.vm.network :private_network, type: "dhcp"
         
         provision_puppet( override, "sysbench.pp" ) {|puppet|
           puppet.facter = { 'default_interface' => 'eth1' }
@@ -145,7 +145,7 @@ Vagrant.configure("2") do |config|
       # Providers
       provider_vmware( name, node_config, 2048, 2 )
       provider_virtualbox( name, node_config, 2048, 2 ) { |vb, override|
-        vb.vm.network :private_network, type: "dhcp"
+        override.vm.network :private_network, type: "dhcp"
         
         provision_puppet( override, "pxc_server.pp" ) {|puppet|
           puppet.facter = { 'default_interface' => 'eth1' }
