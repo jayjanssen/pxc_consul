@@ -11,7 +11,7 @@ pxc_version = "56"
 
 # Node group counts and aws security groups (if using aws provider)
 pxc_nodes = 3
-consul_nodes = 1
+consul_nodes = 2
 test_nodes = 1
 
 # AWS configuration
@@ -30,9 +30,9 @@ global_config = {
   
   # Consul configuration
   'enable_consul' => true,
-  'join_cluster'   => consul_join,
   'datacenter' => aws_region,
-  
+  'join_cluster' => consul_join,
+
   # Sysbench common configuration
   'tables' => 20,
   'rows' => 100000,
@@ -51,6 +51,8 @@ Vagrant.configure("2") do |config|
     config.vm.define name do |node_config|
       node_config.vm.hostname = name
       node_config.vm.provision :hostmanager
+      node_config.vm.network :private_network, type: "dhcp"
+
       
       # Forward Consul UI port
       node_config.vm.network "forwarded_port", guest: 8500, host: 8500 + i, protocol: 'tcp'
@@ -65,9 +67,7 @@ Vagrant.configure("2") do |config|
 
       # Providers
       provider_vmware( name, node_config )
-      provider_virtualbox( name, node_config ) { |vb, override|
-        vb.vm.network :private_network, type: "dhcp"
-        
+      provider_virtualbox( name, node_config ) { |vb, override|        
         # Override the bind_addr on vbox to use the backend network
         provision_puppet( override, "consul_server.pp" ) {|puppet|
           puppet.facter = {
@@ -90,7 +90,10 @@ Vagrant.configure("2") do |config|
       # Provisioners
       provision_puppet( node_config, "sysbench.pp" ) { |puppet|  
         puppet.facter = global_config.merge({
-            'node_name' => name,             # Consul setup
+            # Consul setup
+            'node_name' => name,             
+            'join_cluster' => consul_join,
+
             'mysql_host' => 'pxc.service.consul'             # sysbench setup
 
           })
@@ -99,9 +102,7 @@ Vagrant.configure("2") do |config|
       # Providers
       provider_vmware( name, node_config )
       provider_virtualbox( name, node_config ) { |vb, override|
-        # Override the bind_addr on vbox to use the backend network
-        vb.vm.network :private_network, type: "dhcp"
-        
+        # Override the bind_addr on vbox to use the backend network        
         provision_puppet( override, "sysbench.pp" ) {|puppet|
           puppet.facter = { 'default_interface' => 'eth1' }
         }
@@ -116,7 +117,8 @@ Vagrant.configure("2") do |config|
     config.vm.define name do |node_config|
       node_config.vm.hostname = name
       node_config.vm.provision :hostmanager
-      
+      node_config.vm.network :private_network, type: "dhcp"
+
       # Provisioners
       provision_puppet( node_config, "pxc_server.pp" ) { |puppet| 
         puppet.facter = global_config.merge({
@@ -144,9 +146,7 @@ Vagrant.configure("2") do |config|
 
       # Providers
       provider_vmware( name, node_config, 2048, 2 )
-      provider_virtualbox( name, node_config, 2048, 2 ) { |vb, override|
-        vb.vm.network :private_network, type: "dhcp"
-        
+      provider_virtualbox( name, node_config, 2048, 2 ) { |vb, override|        
         provision_puppet( override, "pxc_server.pp" ) {|puppet|
           puppet.facter = { 'default_interface' => 'eth1' }
         }
