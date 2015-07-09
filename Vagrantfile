@@ -102,7 +102,13 @@ Vagrant.configure("2") do |config|
       # Providers
       provider_vmware( name, node_config )
       provider_virtualbox( name, node_config ) { |vb, override|
+<<<<<<< HEAD
         # Override the bind_addr on vbox to use the backend network        
+=======
+        # Override the bind_addr on vbox to use the backend network
+        override.vm.network :private_network, type: "dhcp"
+        
+>>>>>>> origin/master
         provision_puppet( override, "sysbench.pp" ) {|puppet|
           puppet.facter = { 'default_interface' => 'eth1' }
         }
