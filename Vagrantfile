@@ -11,7 +11,7 @@ ENV['VAGRANT_DEFAULT_PROVIDER'] = 'aws'
 pxc_version = "56"
 
 # Node group counts and aws security groups (if using aws provider)
-pxc_nodes = 1
+pxc_nodes = 3
 consul_nodes = 1
 test_nodes = 1
 
@@ -160,7 +160,6 @@ Vagrant.configure("2") do |config|
           'wsrep_provider_options' => 'gcache.size=50G; gcs.fc_limit=1024',
           'wsrep_slave_threads' => 32,
           'extra_mysqld_config' => '
-wsrep_sst_donor = node2,
 
 [sst]
 compressor="pigz"
